@@ -7,19 +7,24 @@ const tokencheck = (authHeader) => {
             message: "Token Missing"
         }
     }
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return { success: true, decoded }
+    try {
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        return { success: true, decoded };
+    } catch (err) {
+        return { success: false, err };
+    }
 }
 
 const tokenerr = (part, err) => {
-    if (err.name === "TokenExpiredError") {
+    if (err && err.name === "TokenExpiredError") {
         return {
             success: false,
-            status: 400
+            message: "Token Expired",
+            status: 401
         }
     }
-    if (err.name === "JsonWebTokenError") {
+    if (err && err.name === "JsonWebTokenError") {
         return {
             success: false,
             message: "Invalid Token",

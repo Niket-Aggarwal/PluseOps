@@ -4,9 +4,11 @@ const express = require("express")
 const cors = require("cors");
 const dbCollections = require("./Config/DatabaseConnection")
 const auth = require("./Routes/Auth")
+const projects = require("./Routes/Projects")
+const publicRoutes = require("./Routes/Public")
 
 const app = express()
-const port = process.env.Port || 3000
+const port = process.env.PORT || 3000
 
 app.use(express.json())
 app.use(cors());
@@ -21,12 +23,14 @@ app.get("/", (req, res) => {
 });
 
 app.use("/auth", auth)
+app.use("/projects", projects)
+app.use("/public", publicRoutes)
 
 app.use((req, res) => {
-  res.status(200).send({
+  res.status(404).send({
     Title: "PluseOps",
     Tagline: "Api Awake",
-    message: "Route no created"
+    message: "Route not found"
   });
 });
 
