@@ -3,9 +3,27 @@ const mongoose = require("mongoose");
 const Project = require("../Models/projectModel");
 const PingHistory = require("../Models/pingHistoryModel");
 const { validateAndCheckSSRF } = require("../utility/ssrfCheck");
+const { tokencheck, tokenerr } = require("../utility/TokenCheck");
+
+const getAuthenticatedUserId = (req, res) => {
+    const authHeader = req.headers.authorization;
+    const result = tokencheck(authHeader);
+    if (!result.success) {
+        if (result.err) {
+            const errRes = tokenerr("Controller Auth Error:", result.err);
+            res.status(errRes.status || 401).send(errRes);
+            return null;
+        }
+        res.status(401).send(result);
+        return null;
+    }
+    return result.decoded.id;
+};
 
 exports.createProject = async (req, res) => {
     try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
         const { name, baseUrl, intervalMinutes, description, publicStatusEnabled } = req.body;
         if (!name || typeof name !== "string" || !name.trim()) {
             return res.status(400).json({ success: false, message: "Project name is required" });
@@ -23,7 +41,7 @@ exports.createProject = async (req, res) => {
         }
         const publicStatusId = crypto.randomBytes(12).toString("hex");
         const project = await Project.create({
-            userId: req.user.id,
+            userId,
             name: name.trim(),
             baseUrl: baseUrl.trim(),
             intervalMinutes: parsedInterval,
@@ -40,34 +58,38 @@ exports.createProject = async (req, res) => {
         });
     } catch (err) {
         console.error("Create Project Error:", err);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return res.status(500).send({ success: false, message: "Internal server error" });
     }
 };
 
 exports.getUserProjects = async (req, res) => {
     try {
-        const projects = await Project.find({ userId: req.user.id }).sort({ createdAt: -1 });
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
+        const projects = await Project.find({ userId }).sort({ createdAt: -1 });
         return res.status(200).send({
             success: true,
             data: projects
         });
     } catch (err) {
         console.error("Get User Projects Error:", err);
-        return res.status(500).json({ success: false, message: "Internal server error" });
+        return res.status(500).send({ success: false, message: "Internal server error" });
     }
 };
 
 exports.getProjectById = async (req, res) => {
     try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ success: false, message: "Invalid project ID format" });
+            return res.status(400).send({ success: false, message: "Invalid project ID format" });
         }
-        const project = await Project.findOne({ _id: id, userId: req.user.id });
+        const project = await Project.findOne({ _id: id, userId });
         if (!project) {
-            return res.status(404).json({ success: false, message: "Project not found or access denied" });
+            return res.status(404).send({ success: false, message: "Project not found or access denied" });
         }
-        return res.status(200).json({
+        return res.status(200).send({
             success: true,
             data: project
         });
@@ -79,11 +101,13 @@ exports.getProjectById = async (req, res) => {
 
 exports.updateProject = async (req, res) => {
     try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).send({ success: false, message: "Invalid project ID format" });
         }
-        const project = await Project.findOne({ _id: id, userId: req.user.id });
+        const project = await Project.findOne({ _id: id, userId });
         if (!project) {
             return res.status(404).send({ success: false, message: "Project not found or access denied" });
         }
@@ -138,11 +162,13 @@ exports.updateProject = async (req, res) => {
 
 exports.toggleProjectStatus = async (req, res) => {
     try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).send({ success: false, message: "Invalid project ID format" });
         }
-        const project = await Project.findOne({ _id: id, userId: req.user.id });
+        const project = await Project.findOne({ _id: id, userId });
         if (!project) {
             return res.status(404).send({ success: false, message: "Project not found or access denied" });
         }
@@ -151,7 +177,7 @@ exports.toggleProjectStatus = async (req, res) => {
             project.nextCheckAt = new Date();
         }
         await project.save();
-        return res.status(200).json({
+        return res.status(200).send({
             success: true,
             message: `Project ${project.isActive ? "activated" : "deactivated"} successfully`,
             data: project
@@ -164,11 +190,13 @@ exports.toggleProjectStatus = async (req, res) => {
 
 exports.deleteProject = async (req, res) => {
     try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).send({ success: false, message: "Invalid project ID format" });
         }
-        const project = await Project.findOne({ _id: id, userId: req.user.id });
+        const project = await Project.findOne({ _id: id, userId });
         if (!project) {
             return res.status(404).send({ success: false, message: "Project not found or access denied" });
         }
@@ -186,11 +214,13 @@ exports.deleteProject = async (req, res) => {
 
 exports.getLatestStatus = async (req, res) => {
     try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).send({ success: false, message: "Invalid project ID format" });
         }
-        const project = await Project.findOne({ _id: id, userId: req.user.id });
+        const project = await Project.findOne({ _id: id, userId });
         if (!project) {
             return res.status(404).send({ success: false, message: "Project not found or access denied" });
         }
@@ -223,11 +253,13 @@ exports.getLatestStatus = async (req, res) => {
 
 exports.getProjectHistory = async (req, res) => {
     try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
         const { id } = req.params;
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).send({ success: false, message: "Invalid project ID format" });
         }
-        const project = await Project.findOne({ _id: id, userId: req.user.id });
+        const project = await Project.findOne({ _id: id, userId });
         if (!project) {
             return res.status(404).send({ success: false, message: "Project not found or access denied" });
         }
@@ -239,7 +271,7 @@ exports.getProjectHistory = async (req, res) => {
         const skip = (page - 1) * limit;
         const history = await PingHistory.find({ projectId: id }).sort({ checkedAt: -1 }).skip(skip).limit(limit);
         const total = await PingHistory.countDocuments({ projectId: id });
-        return res.status(200).json({
+        return res.status(200).send({
             success: true,
             data: {
                 history,
@@ -251,5 +283,77 @@ exports.getProjectHistory = async (req, res) => {
     } catch (err) {
         console.error("Get Project History Error:", err);
         return res.status(500).send({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getDashboardStats = async (req, res) => {
+    try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
+        const projects = await Project.find({ userId });
+        const totalProjects = projects.length;
+        const activeProjects = projects.filter(p => p.isActive).length;
+        const currentlyUP = projects.filter(p => p.currentStatus === "UP").length;
+        const currentlyDOWN = projects.filter(p => p.currentStatus === "DOWN").length;
+        const currentlyUNKNOWN = projects.filter(p => p.currentStatus === "UNKNOWN").length;
+        let totalChecks = 0;
+        let totalFailures = 0;
+        let latestCheckTime = null;
+        let latestResponseTime = null;
+        for (const p of projects) {
+            totalChecks += p.totalChecks || 0;
+            totalFailures += p.totalFailures || 0;
+            if (p.lastCheckedAt) {
+                const checkTime = new Date(p.lastCheckedAt);
+                if (!latestCheckTime || checkTime > new Date(latestCheckTime)) {
+                    latestCheckTime = p.lastCheckedAt;
+                    latestResponseTime = p.lastResponseTime;
+                }
+            }
+        }
+        return res.status(200).json({
+            success: true,
+            data: {
+                totalProjects,
+                activeProjects,
+                currentlyUP,
+                currentlyDOWN,
+                currentlyUNKNOWN,
+                totalChecks,
+                totalFailures,
+                latestResponseTime,
+                latestCheckTime
+            }
+        });
+    } catch (err) {
+        console.error("Get Dashboard Stats Error:", err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+exports.getHistoryDetail = async (req, res) => {
+    try {
+        const userId = getAuthenticatedUserId(req, res);
+        if (!userId) return;
+
+        const { id, historyId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(historyId)) {
+            return res.status(400).json({ success: false, message: "Invalid project ID or history ID format" });
+        }
+        const project = await Project.findOne({ _id: id, userId });
+        if (!project) {
+            return res.status(404).json({ success: false, message: "Project not found or access denied" });
+        }
+        const historyRecord = await PingHistory.findOne({ _id: historyId, projectId: id, userId });
+        if (!historyRecord) {
+            return res.status(404).json({ success: false, message: "History record not found" });
+        }
+        return res.status(200).json({
+            success: true,
+            data: historyRecord
+        });
+    } catch (err) {
+        console.error("Get History Detail Error:", err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
     }
 };

@@ -2,6 +2,7 @@ const Project = require("../Models/projectModel");
 const PingHistory = require("../Models/pingHistoryModel");
 const Auth = require("../Models/authModel");
 const { sendFailureAlert, sendRecoveryAlert } = require("./emailService");
+const { validateAndCheckSSRF } = require("../utility/ssrfCheck");
 
 const processingProjectIds = new Set();
 
@@ -48,40 +49,56 @@ async function checkSingleProject(project, checkTime) {
     let errorType = null;
     let responseReceived = false;
     let isTimeout = false;
-    try {
-        const response = await fetch(project.baseUrl, {
-            method: "GET",
-            headers: {
-                "User-Agent": "PulseOps-Monitor/1.0 (API Health Checker)"
-            },
-            signal: AbortSignal.timeout(10000)
-        });
-        responseTimeMs = Date.now() - startTime;
-        httpStatus = response.status;
-        responseReceived = true;
-        if (response.ok) {
-            status = "UP";
-            message = `API responded successfully with HTTP ${response.status}`;
-        } else {
-            status = "DOWN";
-            message = `HTTP Error ${response.status}: ${response.statusText || "Unsuccessful status code"}`;
-            errorType = "HTTP_ERROR";
-        }
-    } catch (fetchErr) {
-        responseTimeMs = Date.now() - startTime;
-        responseReceived = false;
-        if (fetchErr.name === "AbortError" || fetchErr.name === "TimeoutError") {
-            isTimeout = true;
-            message = "Request timed out after 10000ms";
-            errorType = "TIMEOUT";
-        } else {
-            message = fetchErr.message || "Network connection failed";
-            errorType = fetchErr.code || "NETWORK_ERROR";
+    const ssrfCheck = validateAndCheckSSRF(project.baseUrl);
+    if (!ssrfCheck.valid) {
+        status = "DOWN";
+        message = `Monitoring blocked: ${ssrfCheck.reason}`;
+        errorType = "SSRF_BLOCKED";
+    } else {
+        try {
+            const response = await fetch(project.baseUrl, {
+                method: "GET",
+                headers: {
+                    "User-Agent": "PulseOps-Monitor/1.0 (API Health Checker)"
+                },
+                signal: AbortSignal.timeout(10000)
+            });
+            responseTimeMs = Date.now() - startTime;
+            httpStatus = response.status;
+            responseReceived = true;
+            if (response.ok) {
+                status = "UP";
+                message = `API responded successfully with HTTP ${response.status}`;
+            } else {
+                status = "DOWN";
+                message = `HTTP Error ${response.status}: ${response.statusText || "Unsuccessful status code"}`;
+                errorType = "HTTP_ERROR";
+            }
+        } catch (fetchErr) {
+            responseTimeMs = Date.now() - startTime;
+            responseReceived = false;
+            if (fetchErr.name === "AbortError" || fetchErr.name === "TimeoutError") {
+                isTimeout = true;
+                message = "Request timed out after 10000ms";
+                errorType = "TIMEOUT";
+            } else {
+                message = fetchErr.message || "Network connection failed";
+                errorType = fetchErr.code || "NETWORK_ERROR";
+            }
         }
     }
     console.log(`[WORKER] ${project.name} -> ${status} | Status: ${httpStatus || "N/A"} | Time: ${responseTimeMs !== null ? responseTimeMs + "ms" : "N/A"}`);
+    if (project.consecutiveFailures === undefined || project.consecutiveFailures === null) {
+        project.consecutiveFailures = 0;
+    }
+    if (project.totalFailures === undefined || project.totalFailures === null) {
+        project.totalFailures = 0;
+    }
+    if (project.totalChecks === undefined || project.totalChecks === null) {
+        project.totalChecks = 0;
+    }
     if (status === "UP") {
-        const wasAlertSent = project.alertSent;
+        const wasAlertSent = Boolean(project.alertSent);
         project.consecutiveFailures = 0;
         project.alertSent = false;
         if (wasAlertSent) {
@@ -127,4 +144,4 @@ async function checkSingleProject(project, checkTime) {
     });
 }
 
-module.exports = {processDueProjects};
+module.exports = { processDueProjects };
