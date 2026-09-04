@@ -47,9 +47,13 @@ const ProjectCard = ({ project, onToggleMonitoring }) => {
 
         <div className="project-meta-grid">
           <div className="meta-item">
+            <span className="meta-label">HTTP Status</span>
+            <span className="meta-value">{project.lastHttpStatus ?? 'N/A'}</span>
+          </div>
+          <div className="meta-item">
             <span className="meta-label">Response Time</span>
             <span className="meta-value">
-              {project.lastResponseTime !== undefined && project.lastResponseTime !== null
+              {project.lastResponseTime != null
                 ? `${project.lastResponseTime}ms`
                 : 'N/A'}
             </span>

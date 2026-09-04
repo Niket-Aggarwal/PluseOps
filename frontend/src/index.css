@@ -1463,3 +1463,205 @@ a:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* Logo Image Styles */
+.brand-logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.login-logo-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+/* Updated Login Page — Homepage Layout */
+.login-container {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+}
+
+.login-desc {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  margin-top: 0.75rem;
+  line-height: 1.6;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.login-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+/* Feature Cards on Homepage */
+.login-features {
+  width: 100%;
+  max-width: 800px;
+}
+
+.features-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  color: var(--text-main);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.feature-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.feature-card:hover {
+  border-color: var(--border-color-light);
+  transform: translateY(-2px);
+}
+
+.feature-icon {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.feature-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: var(--text-main);
+}
+
+.feature-card p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Section Header (used in ProjectDetails recent history) */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* Empty Box (used in ProjectDetails when no history) */
+.empty-box {
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Recent History Section */
+.recent-history-section {
+  margin-top: 1.5rem;
+}
+
+/* Project Meta Grid — support 4 columns on wide screens */
+.project-meta-grid {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+/* Status error card for public page */
+.status-error-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.status-error-card .status-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.status-error-card h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.status-error-card p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Detail message box */
+.detail-message-box {
+  margin-top: 1.25rem;
+}
+
+.detail-message-box h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  color: var(--text-main);
+}
+
+/* Responsive adjustments for features */
+@media (max-width: 600px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .info-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .details-header-top {
+    flex-direction: column;
+  }
+
+  .details-actions {
+    width: 100%;
+  }
+
+  .details-actions .btn {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .project-meta-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

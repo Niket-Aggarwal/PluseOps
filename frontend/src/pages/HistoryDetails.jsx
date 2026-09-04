@@ -59,7 +59,7 @@ const HistoryDetails = () => {
         <div className="detail-status-banner">
           <StatusBadge status={status} size="normal" />
           <span className="timestamp-badge">
-            🕒 Executed At: {formatDate(detail.createdAt || detail.timestamp || detail.checkedAt)}
+            🕒 Executed At: {formatDate(detail.checkedAt || detail.createdAt)}
           </span>
         </div>
 
@@ -67,21 +67,21 @@ const HistoryDetails = () => {
           <div className="info-item">
             <span className="info-label">Response Time</span>
             <span className="info-value highlight">
-              {detail.responseTime !== undefined ? `${detail.responseTime} ms` : 'N/A'}
+              {detail.responseTimeMs != null ? `${detail.responseTimeMs} ms` : 'N/A'}
             </span>
           </div>
 
           <div className="info-item">
             <span className="info-label">HTTP Status Code</span>
             <span className="info-value">
-              <span className="code-pill">{detail.statusCode || detail.httpStatus || 'N/A'}</span>
+              <span className="code-pill">{detail.httpStatus ?? 'N/A'}</span>
             </span>
           </div>
 
           <div className="info-item">
             <span className="info-label">Timeout Flag</span>
             <span className="info-value">
-              {detail.isTimeout ? '⚠️ Yes (Request Timed Out)' : 'No'}
+              {detail.timeout ? '⚠️ Yes (Request Timed Out)' : 'No'}
             </span>
           </div>
 

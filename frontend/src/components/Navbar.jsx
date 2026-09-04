@@ -20,7 +20,7 @@ const Navbar = ({ onToggleSidebar }) => {
           </button>
         )}
         <Link to={isAuthenticated ? "/dashboard" : "/login"} className="brand-logo">
-          <span className="brand-icon">⚡</span>
+          <img src="/favicon.png" alt="PulseOps" className="brand-logo-img" />
           <span className="brand-text">PulseOps</span>
         </Link>
       </div>

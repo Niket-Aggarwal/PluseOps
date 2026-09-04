@@ -112,21 +112,21 @@ const ProjectHistory = () => {
                     const status = item.status || item.currentStatus;
                     return (
                       <tr key={hId}>
-                        <td className="whitespace-nowrap">{formatDate(item.createdAt || item.timestamp || item.checkedAt)}</td>
+                        <td className="whitespace-nowrap">{formatDate(item.checkedAt || item.createdAt)}</td>
                         <td>
                           <StatusBadge status={status} size="small" />
                         </td>
                         <td>
-                          <span className="code-pill">{item.statusCode || item.lastHttpStatus || 'N/A'}</span>
+                          <span className="code-pill">{item.httpStatus ?? 'N/A'}</span>
                         </td>
-                        <td>{item.responseTime !== undefined ? `${item.responseTime}ms` : 'N/A'}</td>
+                        <td>{item.responseTimeMs != null ? `${item.responseTimeMs}ms` : 'N/A'}</td>
                         <td className="truncate-text" title={item.message}>
                           {item.message || '-'}
                         </td>
                         <td>
-                          {item.isTimeout || item.errorType ? (
+                          {item.timeout || item.errorType ? (
                             <span className="badge badge-warning">
-                              {item.errorType || (item.isTimeout ? 'Timeout' : 'Error')}
+                              {item.errorType || (item.timeout ? 'Timeout' : 'Error')}
                             </span>
                           ) : (
                             <span className="text-muted">None</span>

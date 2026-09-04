@@ -146,15 +146,15 @@ const ProjectDetails = () => {
       <div className="stats-grid">
         <StatCard
           title="Response Time"
-          value={project.lastResponseTime !== undefined && project.lastResponseTime !== null ? `${project.lastResponseTime}ms` : 'N/A'}
+          value={project.lastResponseTime !== undefined && project.lastResponseTime !== null ? `${project.lastResponseTime}ms` : (latestCheck?.lastResponseTime !== undefined && latestCheck?.lastResponseTime !== null ? `${latestCheck.lastResponseTime}ms` : 'N/A')}
           subtext="Last check latency"
           type="active"
           icon="⚡"
         />
         <StatCard
           title="HTTP Status"
-          value={project.lastHttpStatus || (latestCheck?.statusCode ?? 'N/A')}
-          subtext={project.lastMessage || latestCheck?.message || 'No check code'}
+          value={project.lastHttpStatus ?? latestCheck?.lastHttpStatus ?? 'N/A'}
+          subtext={project.lastMessage || latestCheck?.lastMessage || 'No check data'}
           icon="🌐"
         />
         <StatCard
@@ -209,19 +209,19 @@ const ProjectDetails = () => {
             <ul className="info-list">
               <li>
                 <span className="label">Status:</span>
-                <span className="value">{latestCheck?.status || project.currentStatus || 'N/A'}</span>
+                <span className="value">{latestCheck?.currentStatus || project.currentStatus || 'N/A'}</span>
               </li>
               <li>
-                <span className="label">Status Code:</span>
-                <span className="value">{latestCheck?.statusCode || project.lastHttpStatus || 'N/A'}</span>
+                <span className="label">HTTP Code:</span>
+                <span className="value">{latestCheck?.lastHttpStatus ?? project.lastHttpStatus ?? 'N/A'}</span>
               </li>
               <li>
                 <span className="label">Message:</span>
-                <span className="value">{latestCheck?.message || project.lastMessage || 'OK'}</span>
+                <span className="value">{latestCheck?.lastMessage || project.lastMessage || 'OK'}</span>
               </li>
               <li>
-                <span className="label">Timeout / Error Type:</span>
-                <span className="value">{latestCheck?.errorType || (latestCheck?.isTimeout ? 'Timeout' : 'None')}</span>
+                <span className="label">Consecutive Failures:</span>
+                <span className="value">{latestCheck?.consecutiveFailures ?? project.consecutiveFailures ?? 0}</span>
               </li>
             </ul>
           ) : (
@@ -259,14 +259,14 @@ const ProjectDetails = () => {
                   const hId = item._id || item.id;
                   return (
                     <tr key={hId}>
-                      <td>{formatDate(item.createdAt || item.timestamp || item.checkedAt)}</td>
+                      <td>{formatDate(item.checkedAt || item.createdAt)}</td>
                       <td>
                         <StatusBadge status={item.status || item.currentStatus} size="small" />
                       </td>
                       <td>
-                        <span className="code-pill">{item.statusCode || item.lastHttpStatus || 'N/A'}</span>
+                        <span className="code-pill">{item.httpStatus ?? 'N/A'}</span>
                       </td>
-                      <td>{item.responseTime !== undefined ? `${item.responseTime}ms` : 'N/A'}</td>
+                      <td>{item.responseTimeMs != null ? `${item.responseTimeMs}ms` : 'N/A'}</td>
                       <td className="truncate-text">{item.message || '-'}</td>
                       <td>
                         <Link to={`/projects/${id}/history/${hId}`} className="btn btn-xs btn-outline-secondary">

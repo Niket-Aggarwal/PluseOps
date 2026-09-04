@@ -81,7 +81,7 @@ const PublicStatus = () => {
         {/* Header */}
         <header className="public-header">
           <div className="brand-badge">
-            <span className="icon">⚡</span>
+            <img src="/favicon.png" alt="PulseOps" className="brand-logo-img" />
             <span>PulseOps Status</span>
           </div>
           <div className="live-pill">
